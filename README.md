@@ -1,6 +1,6 @@
 # Book Bank Management System
 **CASE TOOLS & SOFTWARE ENGINEERING LABORATORY PROJECT**  
-**Prepared by:** 25VV1A1234 (NALLI JASWANTH)  
+**Prepared by:** NALLI JASWANTH  
 
 ---
 
