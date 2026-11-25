@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookBank - Digital Library & Book Bank Management System</title>
+  <meta name="description" content="Digital library and Book Bank management system for students, administrators, and kiosk operators.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Notification Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Main Navigation Bar (Visible only when logged in) -->
+  <header class="navbar" id="mainNavbar" style="display: none;">
+    <div class="nav-container">
+      <div class="nav-brand" id="brandLogo" onclick="app.navigate('home')">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          <line x1="9" y1="7" x2="15" y2="7"></line>
+          <line x1="9" y1="11" x2="13" y2="11"></line>
+        </svg>
+        <span class="brand-title">Book<span class="brand-accent">Bank</span></span>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-link" data-view="home" onclick="app.navigate('home')">Home</button>
+        <button class="nav-link" data-view="catalog" onclick="app.navigate('catalog')">Catalog</button>
+        <button class="nav-link" data-view="dashboard" onclick="app.navigate('dashboard')">Dashboard</button>
+        <button class="nav-link" data-view="kiosk" onclick="app.navigate('kiosk')">
+          <span class="terminal-dot"></span> Kiosk Station
+        </button>
+        <button class="nav-link" data-view="admin" onclick="app.navigate('admin')">Admin Panel</button>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Notification Bell -->
+        <button class="icon-btn" id="notifBellBtn" onclick="app.toggleNotifDropdown()" title="Notifications">
+          <svg class="feather-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="badge notif-badge" id="navNotifCount">2</span>
+        </button>
+
+        <!-- Current User Profile / Role Pill -->
+        <div class="user-pill-container" id="userPillContainer">
+          <div class="user-pill" onclick="app.openUserMenu()">
+            <div class="user-avatar-circle" id="userAvatarText">?</div>
+            <div class="user-meta">
+              <span class="user-pill-name" id="userPillName">Guest User</span>
+              <span class="user-pill-role" id="userPillRole">Not Logged In</span>
+            </div>
+            <svg class="chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          
+          <!-- User Dropdown Menu -->
+          <div class="dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong id="dropdownUserName">Guest User</strong>
+              <small id="dropdownUserEmail">Sign in to access your portal</small>
+            </div>
+            <hr class="dropdown-divider">
+            <div class="dropdown-section-title">Session:</div>
+            <button class="dropdown-item" onclick="app.navigate('login'); app.closeUserMenu();">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+              Go to Login Page
+            </button>
+            <button class="dropdown-item" onclick="app.openChangePasswordModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              Change Password
+            </button>
+            <button class="dropdown-item text-danger" onclick="app.logout()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Logout / Reset Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notif-dropdown" id="notifDropdown">
+      <div class="notif-header">
+        <h4>System Alerts & Notifications</h4>
+        <button class="btn-text" onclick="app.markNotificationsRead()">Mark read</button>
+      </div>
+      <div class="notif-list" id="notifDropdownList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dynamic Content Views -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ========================================== -->
+    <!-- VIEW 0: LOGIN INTERFACE (Document Fig. 1) -->
+    <!-- ========================================== -->
+    <section id="view-login" class="app-view active">
+      <div class="login-page-backdrop">
+        <!-- Mock blurred dashboard background to match Figure 1 screenshot -->
+        <div class="mock-bg-dashboard">
+          <div class="mock-bg-header"></div>
+          <div class="mock-bg-cards">
+            <div class="mock-card"></div>
+            <div class="mock-card"></div>
+            <div class="mock-card"></div>
+            <div class="mock-card"></div>
+          </div>
+          <div class="mock-bg-panels">
+            <div class="mock-panel-lg"></div>
+            <div class="mock-panel-sm"></div>
+          </div>
+        </div>
+
+        <div class="login-center-wrapper">
+          <div class="login-box-card">
+            <div class="login-box-header">
+              <div class="login-brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
+              <h2 class="login-title">Login to BookBank</h2>
+              <p class="login-subtitle">Authentication Entry Point</p>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="role-selector-pills">
+              <button type="button" class="role-pill active" id="roleBtn-student" onclick="app.setLoginRole('student')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Student
+              </button>
+              <button type="button" class="role-pill" id="roleBtn-kiosk" onclick="app.setLoginRole('kiosk')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                Kiosk
+              </button>
+              <button type="button" class="role-pill" id="roleBtn-admin" onclick="app.setLoginRole('admin')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Admin
+              </button>
+            </div>
+
+            <div id="loginCredentialHint" class="credential-hint" style="display:none;"></div>
+
+            <!-- Error Banner -->
+            <div id="loginErrorAlert" class="alert-box-danger" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span id="loginErrorText">Invalid username or password. Please try again.</span>
+            </div>
+
+            <!-- Main Login Form -->
+            <form id="standaloneLoginForm" onsubmit="app.processLogin(event)">
+              <div class="form-group">
+                <label for="mainLoginEmail">Roll Number or Email Address:</label>
+                <div class="input-with-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  <input type="text" id="mainLoginEmail" class="form-input" placeholder="Enter Roll No (e.g. 25VV1A1234) or Email" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="mainLoginPassword">Password:</label>
+                <div class="input-with-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <input type="password" id="mainLoginPassword" class="form-input" placeholder="Enter Password" required>
+                  <button type="button" class="eye-toggle-btn" onclick="app.togglePasswordVisibility('mainLoginPassword')" title="Show/hide password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-options-row">
+                <label class="remember-label">
+                  <input type="checkbox" id="rememberMeCheck" checked> Remember this device
+                </label>
+                <a href="javascript:void(0)" class="forgot-link" onclick="app.showToast('Initial password format: FULL NAME IN CAPITALS + @ + last 4 digits of your roll number. You can change it after login.', 'info')">Forgot Password?</a>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-login-fig1" id="loginSubmitBtn">
+                Login
+              </button>
+
+              <div class="login-footer-links">
+                <span>Don't have an account? </span>
+                <a href="javascript:void(0)" class="signup-link" onclick="app.toggleLoginRegisterView(true)">Sign up</a>
+              </div>
+            </form>
+
+            <!-- Inline Registration Form (Toggled when clicking Sign Up) -->
+            <form id="standaloneRegisterForm" onsubmit="app.processRegister(event)" style="display: none;">
+              <div class="reg-form-intro">
+                <h4>New Student Registration</h4>
+                <p>Enter your student account information</p>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>First Name:</label>
+                  <input type="text" id="regMainFirstName" class="form-input" placeholder="e.g. Jaswanth" required>
+                </div>
+                <div class="form-group">
+                  <label>Last Name:</label>
+                  <input type="text" id="regMainLastName" class="form-input" placeholder="e.g. N" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Roll Number / Student ID:</label>
+                  <input type="text" id="regMainRoll" class="form-input" placeholder="e.g. 25VV1A1234" required>
+                </div>
+                <div class="form-group">
+                  <label>Course / Program:</label>
+                  <input type="text" id="regMainCourse" class="form-input" placeholder="e.g. B.Tech IT" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>College Email Address:</label>
+                <input type="email" id="regMainEmail" class="form-input" placeholder="student@college.edu" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phone Number:</label>
+                  <input type="tel" id="regMainPhone" class="form-input" placeholder="+91 98765 43210" required>
+                </div>
+                <div class="form-group">
+                  <label>City & Country:</label>
+                  <input type="text" id="regMainCity" class="form-input" placeholder="Visakhapatnam, India" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Campus Address & Postal Code:</label>
+                <input type="text" id="regMainAddress" class="form-input" placeholder="Hostel Block A, PIN: 530003" required>
+              </div>
+
+              <div class="form-group">
+                <label>Set Account Password:</label>
+                <input type="password" id="regMainPassword" class="form-input" placeholder="••••••••" required>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">Complete Registration</button>
+
+              <div class="login-footer-links" style="margin-top: 14px;">
+                <span>Already have an account? </span>
+                <a href="javascript:void(0)" class="signup-link" onclick="app.toggleLoginRegisterView(false)">Back to Login</a>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: HOME PAGE (Document Figure 2)     -->
+    <!-- ========================================== -->
+    <section id="view-home" class="app-view">
+      <!-- Hero Section with Deep Indigo Gradient -->
+      <div class="hero-banner">
+        <div class="hero-container">
+          <div class="hero-tag">DIGITAL LIBRARY BOOK BANK</div>
+          <h1 class="hero-title">Welcome to Your Digital Library</h1>
+          <p class="hero-subtitle">Discover, borrow, and manage your favorite books with ease</p>
+
+          <!-- Hero Search Bar matching Fig. 2 -->
+          <div class="search-box-wrapper">
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="heroSearchInput" placeholder="Search for books, authors, or categories..." onkeypress="app.handleHeroSearch(event)">
+              <button class="search-submit-btn" onclick="app.executeHeroSearch()" title="Search catalog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Announcement Alert -->
+          <div class="hero-announcement">
+            <span class="announcement-badge">NOTICE</span>
+            <span class="announcement-text">
+              Academic Year 2026–2027 Book Bank Allocation Active (Started Aug 2026). Automated fine reminders & online reservations active.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browse Categories Section matching Fig. 2 -->
+      <div class="section-container">
+        <div class="section-header-center">
+          <h2 class="section-heading">Browse Categories</h2>
+          <p class="section-subheading">Select a domain to explore available books in the Book Bank</p>
+        </div>
+
+        <div class="categories-grid">
+          <!-- Fiction Card -->
+          <div class="category-card" onclick="app.filterByCategory('Fiction')">
+            <div class="cat-icon-box cat-fiction">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            <h3 class="cat-title">Fiction</h3>
+            <p class="cat-desc">Novels, short stories, and literary works</p>
+            <span class="cat-count" id="catCountFiction">4 Books</span>
+          </div>
+
+          <!-- Science Card -->
+          <div class="category-card" onclick="app.filterByCategory('Science')">
+            <div class="cat-icon-box cat-science">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                <path d="M2 12h20"></path>
+              </svg>
+            </div>
+            <h3 class="cat-title">Science</h3>
+            <p class="cat-desc">Scientific research, physics, astronomy and discoveries</p>
+            <span class="cat-count" id="catCountScience">3 Books</span>
+          </div>
+
+          <!-- Technology Card -->
+          <div class="category-card" onclick="app.filterByCategory('Technology')">
+            <div class="cat-icon-box cat-tech">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+            <h3 class="cat-title">Technology</h3>
+            <p class="cat-desc">Programming, AI, data structures and tech trends</p>
+            <span class="cat-count" id="catCountTech">6 Books</span>
+          </div>
+
+          <!-- History & Social Sciences Card -->
+          <div class="category-card" onclick="app.filterByCategory('History')">
+            <div class="cat-icon-box cat-history">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 21h18"></path>
+                <path d="M3 10h18"></path>
+                <path d="M5 6l7-3 7 3"></path>
+                <path d="M4 10v11"></path>
+                <path d="M20 10v11"></path>
+                <path d="M8 14v4"></path>
+                <path d="M12 14v4"></path>
+                <path d="M16 14v4"></path>
+              </svg>
+            </div>
+            <h3 class="cat-title">History & Humanism</h3>
+            <p class="cat-desc">Civilizations, world history, and anthropology</p>
+            <span class="cat-count" id="catCountHistory">2 Books</span>
+          </div>
+        </div>
+
+        <!-- System Architecture Highlights matching Experiments 1 & 2 -->
+        <div class="quick-workflow-box">
+          <div class="workflow-header">
+            <h3>Three-Tier Role-Based Book Bank Operations</h3>
+            <p>Connecting Students, Kiosk Operators, and Administrators into one integrated platform</p>
+          </div>
+          <div class="workflow-grid">
+            <div class="workflow-step" onclick="app.navigate('dashboard')">
+              <div class="step-num">1</div>
+              <h4>Student Self-Service</h4>
+              <p>Search books, check real-time stock, reserve online, monitor due dates, and track fines.</p>
+              <button class="btn btn-outline-sm">Open Dashboard &rarr;</button>
+            </div>
+            <div class="workflow-step" onclick="app.navigate('kiosk')">
+              <div class="step-num">2</div>
+              <h4>Kiosk Terminal Station</h4>
+              <p>Rapid scan ID, immediate book issuance, returns processing, on-site fine collection & receipts.</p>
+              <button class="btn btn-outline-sm">Launch Kiosk &rarr;</button>
+            </div>
+            <div class="workflow-step" onclick="app.navigate('admin')">
+              <div class="step-num">3</div>
+              <h4>Administrative Control</h4>
+              <p>Inventory management, stock alerts, defaulters report, lending policy & backup maintenance.</p>
+              <button class="btn btn-outline-sm">Admin Control &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: BOOK CATALOG (Document Figure 3)  -->
+    <!-- ========================================== -->
+    <section id="view-catalog" class="app-view">
+      <div class="page-header-band">
+        <div class="section-container">
+          <div class="page-title-row">
+            <div>
+              <h1 class="page-title">Book Catalog</h1>
+              <p class="page-subtitle">Browse available books, filter by category/availability, and reserve or borrow instantly</p>
+            </div>
+            <div class="catalog-actions-top">
+              <button class="btn btn-secondary" onclick="app.openDonateModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                Donate a Book
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-container">
+        <!-- Filter and Search Toolbar -->
+        <div class="catalog-toolbar">
+          <div class="search-input-group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="catalogSearchInput" placeholder="Filter by title, author, book ID, subject..." oninput="app.filterCatalog()">
+          </div>
+
+          <div class="filter-controls">
+            <select id="catalogCategoryFilter" onchange="app.filterCatalog()" class="form-select">
+              <option value="All">All Categories</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Science">Science</option>
+              <option value="Technology">Technology</option>
+              <option value="History">History & Humanism</option>
+              <option value="Engineering">Core Engineering</option>
+            </select>
+
+            <select id="catalogAvailabilityFilter" onchange="app.filterCatalog()" class="form-select">
+              <option value="All">All Statuses</option>
+              <option value="Available">Available Only</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Issued">Issued / Out of Stock</option>
+            </select>
+
+            <select id="catalogSortFilter" onchange="app.filterCatalog()" class="form-select">
+              <option value="titleAsc">Sort: Title (A-Z)</option>
+              <option value="titleDesc">Sort: Title (Z-A)</option>
+              <option value="authorAsc">Sort: Author</option>
+              <option value="quantityDesc">Highest Copies</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Book Cards Grid matching Figure 3 -->
+        <div class="catalog-grid" id="catalogGrid">
+          <!-- Rendered dynamically via JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: STUDENT DASHBOARD (Figure 4)      -->
+    <!-- ========================================== -->
+    <section id="view-dashboard" class="app-view">
+      <div class="page-header-band">
+        <div class="section-container">
+          <div class="dashboard-hero-row">
+            <div>
+              <h1 class="page-title">My Dashboard</h1>
+              <p class="page-subtitle">Track your borrowed textbooks, due dates, fines, and automated alerts</p>
+            </div>
+            <!-- Student Profile Badge matching Figure 4 -->
+            <div class="student-profile-badge">
+              <div class="student-avatar-wrap">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+                </svg>
+              </div>
+              <div class="student-info-text">
+                <h3 id="dashStudentName">NALLI JASWANTH</h3>
+                <span class="member-tag" id="dashMemberSince">Member since Aug 2026 • Roll: 25VV1A1234</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline-danger" onclick="app.logout()">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-container">
+        <!-- 4 Metrics Cards matching Fig. 4: Issued (2), Reading (2), Returned (0), Overdue (2) -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon-wrap icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-value" id="statBooksIssued">2</span>
+              <span class="metric-label">Books Issued</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-wrap icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-value" id="statCurrentlyReading">2</span>
+              <span class="metric-label">Currently Reading</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-wrap icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-value" id="statBooksReturned">0</span>
+              <span class="metric-label">Books Returned</span>
+            </div>
+          </div>
+
+          <div class="metric-card overdue-card">
+            <div class="metric-icon-wrap icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-value" id="statOverdue">2</span>
+              <span class="metric-label">Overdue</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Main Columns: Currently Borrowed & Notifications (matching Fig. 4) -->
+        <div class="dashboard-columns">
+          
+          <!-- Column 1: Currently Borrowed List -->
+          <div class="dash-panel">
+            <div class="panel-header-action">
+              <h3>Currently Borrowed</h3>
+              <div class="panel-btns">
+                <button class="btn btn-outline-sm" onclick="app.downloadBorrowingHistory()" title="Download borrowing record as CSV / Receipt">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Export History
+                </button>
+              </div>
+            </div>
+
+            <div class="borrowed-list" id="currentlyBorrowedList">
+              <!-- Rendered via JS with "Clean Code" and "Ways of Seeing" overdue tags -->
+            </div>
+
+            <!-- Fines & Penalties Bar -->
+            <div class="fines-summary-bar">
+              <div class="fine-info">
+                <span class="fine-title">Total Outstanding Fine</span>
+                <span class="fine-amount" id="totalFinesAmount">₹655</span>
+                <small class="fine-subtext">Calculated at ₹5/day overdue penalty rate</small>
+              </div>
+              <button class="btn btn-danger-solid" onclick="app.openPayFinesModal()">Pay Outstanding Fine</button>
+            </div>
+          </div>
+
+          <!-- Column 2: Notifications Panel matching Fig. 4 -->
+          <div class="dash-panel">
+            <div class="panel-header-action">
+              <h3>Notifications</h3>
+              <span class="badge badge-info" id="notifPanelCount">2 Alerts</span>
+            </div>
+
+            <div class="notifications-list" id="dashboardNotifList">
+              <!-- Rendered via JS matching Fig. 4: "Book Due Soon", "New Book Available" -->
+            </div>
+
+            <!-- Quick Service Actions Box -->
+            <div class="quick-service-box">
+              <h4>Quick Student Actions</h4>
+              <div class="quick-service-actions">
+                <button class="btn btn-secondary-sm" onclick="app.navigate('catalog')">Reserve Another Book</button>
+                <button class="btn btn-secondary-sm" onclick="app.openReportDamageModal()">Report Damaged Book</button>
+                <button class="btn btn-secondary-sm" onclick="app.openDonateModal()">Donate Textbook</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Full Borrowing & Lending History Table -->
+        <div class="dash-panel full-width-panel">
+          <div class="panel-header-action">
+            <h3>Complete Borrowing & Transaction History</h3>
+            <button class="btn btn-outline-sm" onclick="app.printBorrowingReceipt('all')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Print Account Statement
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="studentHistoryTable">
+              <thead>
+                <tr>
+                  <th>Tx ID</th>
+                  <th>Book Title</th>
+                  <th>Issue Date</th>
+                  <th>Due Date</th>
+                  <th>Return Date</th>
+                  <th>Fine / Penalty</th>
+                  <th>Status</th>
+                  <th>Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="studentHistoryTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: KIOSK STATION (UML Kiosk Flow)    -->
+    <!-- ========================================== -->
+    <section id="view-kiosk" class="app-view">
+      <div class="kiosk-banner">
+        <div class="section-container">
+          <div class="kiosk-header-content">
+            <div class="kiosk-status-pill">
+              <span class="live-pulse"></span>
+              <span>KIOSK TERMINAL #1 • MAIN LIBRARY FOYER • ONLINE</span>
+            </div>
+            <h1 class="page-title text-white">Physical & Digital Kiosk Station</h1>
+            <p class="page-subtitle text-light">Intermediary terminal for instant student scan, fast book issuance, returns, and on-site fine settlements</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-container">
+        
+        <!-- Step 1: Scan Student ID Card (Activity Diagram Fig. 12 & 20) -->
+        <div class="kiosk-grid">
+          
+          <div class="kiosk-card">
+            <div class="card-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="8" x2="17" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="7" y1="16" x2="13" y2="16"></line></svg>
+              <h3>1. Student ID & Card Scanner</h3>
+            </div>
+            <p class="card-caption">Simulate scanning student smart-card, barcode, or enter Roll Number:</p>
+            
+            <div class="kiosk-scanner-input">
+              <input type="text" id="kioskStudentIdInput" placeholder="Enter or scan Roll No (e.g., 25VV1A1234)" value="25VV1A1234">
+              <button class="btn btn-primary" onclick="app.kioskScanStudent()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                Verify & Load Student
+              </button>
+            </div>
+
+            <div class="quick-scan-pills">
+              <span>Quick Test ID:</span>
+              <button class="pill-btn" onclick="app.quickFillKioskId('25VV1A1234')">25VV1A1234 (NALLI JASWANTH)</button>
+              <button class="pill-btn" onclick="app.quickFillKioskId('25VV1A1233')">25VV1A1233 (NAGAM JASWANTH YADAV)</button>
+              <button class="pill-btn" onclick="app.quickFillKioskId('25VV1A1232')">25VV1A1232 (MUTYALA ABHISHEK)</button>
+              <button class="pill-btn" onclick="app.quickFillKioskId('25VV1A1235')">25VV1A1235 (NARTHU HASINI)</button>
+            </div>
+
+            <!-- Student Verification Card -->
+            <div class="verified-student-card" id="kioskVerifiedStudentBox">
+              <div class="verified-badge-top">
+                <span class="badge badge-success">✓ Student Verified & Eligible</span>
+                <span class="eligibility-status" id="kioskEligibleQuota">Quota: 1 / 3 Remaining</span>
+              </div>
+              <div class="verified-body">
+                <h4 id="kioskStudentName">NALLI JASWANTH (25VV1A1234)</h4>
+                <p><strong>Department:</strong> Information Technology • <strong>Course:</strong> B.Tech (Year 3)</p>
+                <p><strong>Active Loans:</strong> 2 books • <strong class="text-danger">Overdue Fines:</strong> ₹655</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Fast Book Issuance & Return Actions -->
+          <div class="kiosk-card">
+            <div class="card-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              <h3>2. Quick Issue Book (Lend)</h3>
+            </div>
+            <p class="card-caption">Select an available book from the inventory to issue directly:</p>
+
+            <div class="form-group">
+              <label for="kioskIssueBookSelect">Choose Book from Stock:</label>
+              <select id="kioskIssueBookSelect" class="form-select">
+                <!-- Populated dynamically with available books -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="kioskIssueDurationSelect">Lending Period (Term / Days):</label>
+              <select id="kioskIssueDurationSelect" class="form-select">
+                <option value="15">Standard 15 Days Lending</option>
+                <option value="30">Extended 30 Days Research</option>
+                <option value="120">Full Semester (Book Bank Scheme)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="app.kioskProcessIssue()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Issue Book & Generate Receipt
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Return Processing Section (Activity Diagram Fig. 12 & 20) -->
+        <div class="kiosk-return-card">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            <div>
+              <h3>3. Process Book Return & Automated Fine Calculation</h3>
+              <p class="card-caption">Select or scan the returned book barcode. The system verifies due date, computes fines, and restocks inventory.</p>
+            </div>
+          </div>
+
+          <div class="kiosk-return-box" id="kioskReturnContent">
+            <!-- Render active books for the selected student to return -->
+          </div>
+        </div>
+
+        <!-- Terminal Live Transaction Feed -->
+        <div class="kiosk-logs-card">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            <h3>Live Kiosk Station Transaction Feed</h3>
+          </div>
+          <div class="kiosk-feed" id="kioskLiveFeed">
+            <!-- Dynamic feed -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 5: ADMIN MANAGEMENT CONSOLE          -->
+    <!-- ========================================== -->
+    <section id="view-admin" class="app-view">
+      <div class="page-header-band">
+        <div class="section-container">
+          <div class="admin-top-bar">
+            <div>
+              <h1 class="page-title">Administrator Control Center</h1>
+              <p class="page-subtitle">Central inventory oversight, student account approvals, lending policies, and report generation</p>
+            </div>
+            <div class="admin-top-actions">
+              <button class="btn btn-outline-danger" onclick="app.logout()">
+                Logout
+              </button>
+              <button class="btn btn-primary" onclick="app.openAddBookModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add New Book
+              </button>
+              <button class="btn btn-secondary" onclick="app.downloadBackup()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Backup Data (JSON)
+              </button>
+              <label class="btn btn-outline" style="cursor: pointer;">
+                Restore
+                <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="app.restoreBackup(event)">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-container">
+        
+        <!-- Admin Navigation Tabs -->
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="inventory" onclick="app.switchAdminTab('inventory')">Book Inventory Management</button>
+          <button class="tab-btn" data-tab="users" onclick="app.switchAdminTab('users')">Students & Accounts</button>
+          <button class="tab-btn" data-tab="reports" onclick="app.switchAdminTab('reports')">Generate Reports</button>
+          <button class="tab-btn" data-tab="policies" onclick="app.switchAdminTab('policies')">Lending Rules & System Config</button>
+        </div>
+
+        <!-- TAB 1: INVENTORY MANAGEMENT -->
+        <div id="adminTab-inventory" class="admin-tab-pane active">
+          <div class="panel-header-action">
+            <h3>All Registered Books in Book Bank</h3>
+            <span class="badge badge-info" id="adminTotalBooksBadge">6 Titles Listed</span>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="data-table" id="adminInventoryTable">
+              <thead>
+                <tr>
+                  <th>Book ID</th>
+                  <th>Title & Author</th>
+                  <th>Category</th>
+                  <th>Publisher & Edition</th>
+                  <th>Total Qty</th>
+                  <th>Available</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminInventoryTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: STUDENTS & USER ACCOUNTS -->
+        <div id="adminTab-users" class="admin-tab-pane">
+          <div class="panel-header-action">
+            <h3>Registered Students & Access Controls</h3>
+            <button class="btn btn-outline-sm" onclick="app.openNewStudentModal()">+ Register New Student</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="adminUsersTable">
+              <thead>
+                <tr>
+                  <th>Roll Number</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Course / Dept</th>
+                  <th>Active Loans</th>
+                  <th>Outstanding Fine</th>
+                  <th>Account Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: REPORT GENERATION -->
+        <div id="adminTab-reports" class="admin-tab-pane">
+          <div class="reports-header-box">
+            <h3>Report Generation</h3>
+            <p>Export comprehensive reports on book availability, student loans, and overdue defaulters.</p>
+            <div class="report-btns-row">
+              <button class="btn btn-primary" onclick="app.generateReport('inventory')">1. Book Inventory & Availability Report</button>
+              <button class="btn btn-danger-solid" onclick="app.generateReport('defaulters')">2. Defaulters & Overdue Report</button>
+              <button class="btn btn-secondary" onclick="app.generateReport('lending')">3. All-Time Lending & Returns Report</button>
+              <button class="btn btn-outline" onclick="app.generateReport('fines')">4. Fine Collection & Finance Report</button>
+            </div>
+          </div>
+
+          <div class="report-display-box" id="reportDisplayBox">
+            <div class="report-empty-state">
+              <p>Click any report button above to compile and view the real-time system report.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: LENDING POLICIES & RULES -->
+        <div id="adminTab-policies" class="admin-tab-pane">
+          <div class="policy-grid">
+            <div class="policy-card">
+              <h3>System Lending Rules & Fines Configuration</h3>
+              <p>Adjust institutional book bank policies:</p>
+
+              <div class="form-group">
+                <label for="cfgMaxBooks">Maximum Books Allowed per Student:</label>
+                <input type="number" id="cfgMaxBooks" class="form-input" value="3" min="1" max="10">
+              </div>
+
+              <div class="form-group">
+                <label for="cfgFinePerDay">Overdue Fine Rate (per Day in ₹):</label>
+                <input type="number" id="cfgFinePerDay" class="form-input" value="5" min="0" max="100">
+              </div>
+
+              <div class="form-group">
+                <label for="cfgStandardDays">Standard Borrow Duration (Days):</label>
+                <input type="number" id="cfgStandardDays" class="form-input" value="15" min="1" max="180">
+              </div>
+
+              <button class="btn btn-primary" onclick="app.saveLendingPolicies()">Save Policy Changes</button>
+            </div>
+
+            <div class="policy-card">
+              <h3>System Activity & Error Logs</h3>
+              <p>Audit trail of operations and security events:</p>
+              <div class="audit-log-box" id="adminAuditLogBox">
+                <!-- Dynamically filled with logs -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODALS & OVERLAYS                          -->
+  <!-- ========================================== -->
+
+  <!-- 1. LOGIN MODAL (Document Figure 1) -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('loginModal')">&times;</button>
+      <div class="modal-header-center">
+        <div class="login-brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        </div>
+        <h2 class="modal-title">Login to BookBank</h2>
+        <p class="modal-subtitle">Access your account or terminal station</p>
+      </div>
+
+      <form id="loginForm" onsubmit="app.handleLogin(event)">
+        <div class="form-group">
+          <label for="loginRoleSelect">Select User Role:</label>
+          <select id="loginRoleSelect" class="form-select">
+            <option value="student">Student (Enter Roll No or Email)</option>
+            <option value="kiosk">Kiosk Operator (Station 1)</option>
+            <option value="admin">Administrator / Librarian</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="loginEmailInput">Roll Number or Email:</label>
+          <input type="text" id="loginEmailInput" class="form-input" placeholder="e.g. 25VV1A1234 or Email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPasswordInput">Password:</label>
+          <input type="password" id="loginPasswordInput" class="form-input" placeholder="Enter Password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+
+        <div class="modal-footer-note">
+          <span>Don't have an account? </span>
+          <a href="javascript:void(0)" onclick="app.showRegisterModal()">Sign up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. CHANGE PASSWORD MODAL -->
+  <div class="modal-overlay" id="changePasswordModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('changePasswordModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Change Password</h2>
+        <p class="modal-subtitle">Update the password for your student account</p>
+      </div>
+      <form onsubmit="app.changeStudentPassword(event)">
+        <div class="form-group">
+          <label>Student Account:</label>
+          <input type="text" id="changePasswordStudent" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label for="currentAccountPassword">Current Password:</label>
+          <input type="password" id="currentAccountPassword" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="newAccountPassword">New Password:</label>
+          <input type="password" id="newAccountPassword" class="form-input" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmAccountPassword">Confirm New Password:</label>
+          <input type="password" id="confirmAccountPassword" class="form-input" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Change Password</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. REGISTRATION MODAL -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('registerModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Student Registration</h2>
+        <p class="modal-subtitle">Register for Book Bank access</p>
+      </div>
+
+      <form id="registerForm" onsubmit="app.handleRegister(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" id="regFirstName" class="form-input" required placeholder="John">
+          </div>
+          <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" id="regLastName" class="form-input" required placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Roll Number (Student ID):</label>
+            <input type="text" id="regRollNo" class="form-input" required placeholder="24VV1A1299">
+          </div>
+          <div class="form-group">
+            <label>Course / Department:</label>
+            <input type="text" id="regCourse" class="form-input" required placeholder="B.Tech IT">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address:</label>
+          <input type="email" id="regEmail" class="form-input" required placeholder="john.doe@college.edu">
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number:</label>
+          <input type="tel" id="regPhone" class="form-input" required placeholder="+91 98765 43210">
+        </div>
+
+        <div class="form-group">
+          <label>Address & Postal Code:</label>
+          <input type="text" id="regAddress" class="form-input" required placeholder="Main Campus Hostel, Block C">
+        </div>
+
+        <div class="form-group">
+          <label>Password:</label>
+          <input type="password" id="regPassword" class="form-input" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Complete Registration</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. BOOK DETAILS & RESERVATION MODAL -->
+  <div class="modal-overlay" id="bookDetailsModal">
+    <div class="modal-card modal-lg">
+      <button class="modal-close-btn" onclick="app.closeModal('bookDetailsModal')">&times;</button>
+      <div id="bookModalBody">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. DONATE BOOK MODAL -->
+  <div class="modal-overlay" id="donateModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('donateModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Donate Books to Book Bank</h2>
+        <p class="modal-subtitle">Contribute textbooks to support the library</p>
+      </div>
+
+      <form onsubmit="app.handleDonateBook(event)">
+        <div class="form-group">
+          <label>Book Title:</label>
+          <input type="text" id="donateTitle" class="form-input" required placeholder="e.g. Operating System Concepts">
+        </div>
+        <div class="form-group">
+          <label>Author:</label>
+          <input type="text" id="donateAuthor" class="form-input" required placeholder="e.g. Abraham Silberschatz">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category:</label>
+            <select id="donateCategory" class="form-select">
+              <option value="Technology">Technology</option>
+              <option value="Science">Science</option>
+              <option value="Engineering">Core Engineering</option>
+              <option value="Fiction">Fiction</option>
+              <option value="History">History</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Edition / Year:</label>
+            <input type="text" id="donateEdition" class="form-input" placeholder="e.g. 10th Edition">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Condition:</label>
+          <select id="donateCondition" class="form-select">
+            <option value="Excellent">Like New / Excellent</option>
+            <option value="Good">Good (Readable, minor highlights)</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Submit Donation</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. EXTENSION REQUEST MODAL -->
+  <div class="modal-overlay" id="extensionModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('extensionModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Request Borrow Extension</h2>
+        <p class="modal-subtitle">Request an extension for your borrowed book</p>
+      </div>
+      <div id="extensionModalBody">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. PAY FINES MODAL -->
+  <div class="modal-overlay" id="payFinesModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('payFinesModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Settle Overdue Fines</h2>
+        <p class="modal-subtitle">Settle outstanding library fines</p>
+      </div>
+      <div class="fine-payment-summary">
+        <div class="payment-row">
+          <span>Student:</span>
+          <strong id="payFineStudentName">NALLI JASWANTH (25VV1A1234)</strong>
+        </div>
+        <div class="payment-row">
+          <span>Total Overdue Days:</span>
+          <span id="payFineTotalDays">1,043 days combined</span>
+        </div>
+        <div class="payment-row total-highlight">
+          <span>Amount Payable:</span>
+          <strong id="payFineAmount">₹5,215</strong>
+        </div>
+      </div>
+      <div class="payment-methods">
+        <label><input type="radio" name="payMethod" value="upi" checked> UPI / QR Code / Net Banking</label>
+        <label><input type="radio" name="payMethod" value="card"> Credit / Debit Card</label>
+        <label><input type="radio" name="payMethod" value="kiosk"> Cash at Kiosk Counter</label>
+      </div>
+      <button class="btn btn-success-solid btn-block" onclick="app.processFinePayment()">Confirm & Settle Fine</button>
+    </div>
+  </div>
+
+  <!-- 7. REPORT DAMAGE / PROBLEM MODAL -->
+  <div class="modal-overlay" id="reportDamageModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('reportDamageModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title">Report Book Condition / Defect</h2>
+        <p class="modal-subtitle">Notify admins about torn pages, binding defects or missing pages</p>
+      </div>
+      <form onsubmit="app.handleReportDamage(event)">
+        <div class="form-group">
+          <label>Select Book:</label>
+          <select id="damageBookSelect" class="form-select">
+            <!-- Dynamic -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Problem Type:</label>
+          <select id="damageTypeSelect" class="form-select">
+            <option value="Torn / Missing Pages">Torn / Missing Pages</option>
+            <option value="Water Damage">Water / Liquid Damage</option>
+            <option value="Spine / Binding Loose">Spine / Binding Loose</option>
+            <option value="Lost Book">Lost Book by Borrower</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Detailed Notes:</label>
+          <textarea id="damageNotes" class="form-textarea" placeholder="Specify page numbers or condition details..." rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-danger-solid btn-block">Submit Report to Admin</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 8. ADMIN ADD/EDIT BOOK MODAL -->
+  <div class="modal-overlay" id="adminBookModal">
+    <div class="modal-card modal-lg">
+      <button class="modal-close-btn" onclick="app.closeModal('adminBookModal')">&times;</button>
+      <div class="modal-header-center">
+        <h2 class="modal-title" id="adminBookModalTitle">Add New Book to Inventory</h2>
+        <p class="modal-subtitle">Class Book: bookID, title, author, publisher, edition, quantity</p>
+      </div>
+      <form onsubmit="app.handleSaveAdminBook(event)">
+        <input type="hidden" id="editBookId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Book Title:</label>
+            <input type="text" id="admBookTitle" class="form-input" required placeholder="Clean Code">
+          </div>
+          <div class="form-group">
+            <label>Author:</label>
+            <input type="text" id="admBookAuthor" class="form-input" required placeholder="Robert C. Martin">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category / Subject:</label>
+            <select id="admBookCategory" class="form-select">
+              <option value="Technology">Technology</option>
+              <option value="Science">Science</option>
+              <option value="Engineering">Core Engineering</option>
+              <option value="Fiction">Fiction</option>
+              <option value="History">History</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Publisher & Edition:</label>
+            <input type="text" id="admBookPublisher" class="form-input" required placeholder="Prentice Hall, 1st Edition">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Total Quantity in Stock:</label>
+            <input type="number" id="admBookQuantity" class="form-input" min="1" max="100" value="5" required>
+          </div>
+          <div class="form-group">
+            <label>Department / Faculty:</label>
+            <input type="text" id="admBookDept" class="form-input" value="Computer Science & Engineering">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Synopsis / Description:</label>
+          <textarea id="admBookDesc" class="form-textarea" rows="2" placeholder="Brief summary of textbook contents..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Save to Inventory</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. PRINTABLE RECEIPT / SLIP MODAL (Activity Diagram: Print Borrow / Return Receipt) -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="app.closeModal('receiptModal')">&times;</button>
+      <div id="receiptPrintArea" class="receipt-print-area">
+        <!-- Receipt generated dynamically with barcode -->
+      </div>
+      <div class="receipt-modal-actions">
+        <button class="btn btn-primary" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print Official Slip
+        </button>
+        <button class="btn btn-secondary" onclick="app.closeModal('receiptModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <strong>BookBank System</strong>
+        </div>
+        <p>Digital library, book issue, return, and inventory management system.</p>
+      </div>
+      <div class="footer-col">
+        <h4>System Modules</h4>
+        <ul>
+          <li><a href="javascript:void(0)" onclick="app.navigate('home')">Digital Library Home</a></li>
+          <li><a href="javascript:void(0)" onclick="app.navigate('catalog')">Live Book Catalog</a></li>
+          <li><a href="javascript:void(0)" onclick="app.navigate('dashboard')">Student Dashboard</a></li>
+          <li><a href="javascript:void(0)" onclick="app.navigate('kiosk')">Kiosk Service Station</a></li>
+          <li><a href="javascript:void(0)" onclick="app.navigate('admin')">Admin Control Center</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026–2027 Book Bank Management System. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
