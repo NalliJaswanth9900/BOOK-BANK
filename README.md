@@ -1,6 +1,5 @@
 # Book Bank Management System
 **CASE TOOLS & SOFTWARE ENGINEERING LABORATORY PROJECT**  
-**Submitted to:** B. TIRIMULA RAO SIR  
 **Prepared by:** 25VV1A1234 (NALLI JASWANTH)  
 
 ---
